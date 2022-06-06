@@ -1,44 +1,22 @@
 package main
 
-import (
-	"bufio"
-	"encoding/hex"
-	"fmt"
-	"io"
-	"log"
-	"os"
-)
+func main(){
 
-func main() {  
-
-    f, err := os.Open("/Users/jeonkangmin/Desktop/blk00000.dat")
-
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    defer f.Close()
-	
-	stat, err := f.Stat()
-	if err!=nil {
-		return
+	type block struct {
+		magicNumber [4]byte
+		blockSize [4]byte
+		blockVersion [4]byte
+		prevBlockHash [32]byte
+		merkleRoot [32]byte
+		time [4]byte
+		bits [4]byte
+		nonce [4]byte
+		totalTxNum int64
+		version [4]byte
+		numInput int64
 	}
-
-    reader := bufio.NewReader(f)
-    buf := make([]byte, stat.Size())
-
-
-
-    for {
-        _, err := reader.Read(buf)
-
-        if err != nil {
-            if err != io.EOF {
-                fmt.Println(err)
-            }
-            break
-        }
-        
-        fmt.Printf("%s", hex.Dump(buf))
-    }
+	type txInput struct {
+		preTxhash [32]byte
+		prevTxoutIndex int32
+	}
 }
