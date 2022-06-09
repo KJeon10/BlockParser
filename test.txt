@@ -1,0 +1,2 @@
+from => input + locking script
+to => output
