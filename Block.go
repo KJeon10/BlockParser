@@ -17,7 +17,7 @@ type Preamble struct {
 	BlockSize   uint32
 }
 type BlockHeader struct {
-	BlockVersion  []byte
+	BlockVersion  uint32
 	PrevBlockHash []byte
 	MerKleRoot    []byte
 	Time          uint32

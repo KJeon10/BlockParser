@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -12,11 +13,9 @@ func main() {
 	ExecutionTimerStart := time.Now()
 	BlockFile := OpenBlockfile()
 	BlockList := ReturnBlockListFromFile(BlockFile)
-	for i := 0; i < len(*BlockList); i++ {
-		fmt.Printf("####### BLOCK INDEX %d ######\n", i)
-		fmt.Printf("%d", len((*BlockList)[i]))
-		fmt.Printf("\n####### END BLOCK INDEX %d ######\n", i)
-	}
+	fmt.Printf("####### BLOCK INDEX %d ######\n", 0)
+	fmt.Printf("%s", hex.EncodeToString((*BlockList)[0]))
+	fmt.Printf("\n####### END BLOCK INDEX %d ######\n", 0)
 	ExecutionTimeElapsed := time.Since(ExecutionTimerStart)
 	fmt.Printf("+++++EXECUTION TIME TOTAL %s+++++", ExecutionTimeElapsed)
 }
@@ -38,7 +37,7 @@ func ReturnBlockListFromFile(BlockFile *[]byte) (BlockList *[][]byte) {
 	BlockList = &blockList
 	for Position < BlockFileLength {
 		var BlockLength = binary.LittleEndian.Uint32((*BlockFile)[Position+4 : Position+8])
-		blockList = append(blockList, (*BlockFile)[Position:Position+BlockLength])
+		blockList = append(blockList, (*BlockFile)[Position:Position+BlockLength+8])
 		Position = Position + BlockLength + 8
 
 	}
