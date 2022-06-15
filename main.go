@@ -10,11 +10,12 @@ import (
 )
 
 func main() {
+	HASH160()
+
 	ExecutionTimerStart := time.Now()
 	BlockFile := OpenBlockfile()
 	BlockList := ReturnBlockListFromFile(BlockFile)
-	for i := 0; i < 1; i++ {
-
+	for i := 0; i < len(BlockList); i++ {
 		ParseResultPrinter(ParseBlock(BlockList[i]))
 	}
 	elapsed := time.Since(ExecutionTimerStart)
@@ -34,19 +35,25 @@ func ReturnBlockListFromFile(BlockFile []byte) (BlockList [][]byte) {
 	var Position uint32 = 0
 	var BlockFileLength = uint32(len(BlockFile))
 	for Position < BlockFileLength {
-		var BlockLength = binary.LittleEndian.Uint32((BlockFile)[Position+4 : Position+8])
-		BlockList = append(BlockList, (BlockFile)[Position:Position+BlockLength+8])
-		Position = Position + BlockLength + 8
+		if BlockFile[Position] == 249 {
+			var BlockLength = binary.LittleEndian.Uint32((BlockFile)[Position+4 : Position+8])
+			BlockList = append(BlockList, (BlockFile)[Position:Position+BlockLength+8])
+			Position = Position + BlockLength + 8
+		} else {
+			return BlockList
+		}
 	}
 	return BlockList
 }
 func ParseResultPrinter(block *Block) {
-	fmt.Printf("\n====BLOCK DATA====\n")
+
+	/*fmt.Printf("====BLOCK DATA====\n")
+
 	fmt.Printf("MagicNumber : %s\n", hex.EncodeToString(block.Preamble.MagicNumber))
 	fmt.Printf("BlockSize : %d\n", block.Preamble.BlockSize)
-	fmt.Printf("BlockVersion : %d\n", block.BlockHeader.BlockVersion)
+		fmt.Printf("BlockVersion : %d\n", block.BlockHeader.BlockVersion)*/
 	fmt.Printf("PrevBlockHash : %s\n", hex.EncodeToString(block.BlockHeader.PrevBlockHash))
-	fmt.Printf("MerkleRoot : %s\n", hex.EncodeToString(block.BlockHeader.MerkleRoot))
+	/*fmt.Printf("MerkleRoot : %s\n", hex.EncodeToString(block.BlockHeader.MerkleRoot))
 	fmt.Printf("Time : %d\n", block.BlockHeader.Time)
 	fmt.Printf("Nonce : %d\n", block.BlockHeader.Nonce)
 	fmt.Printf("TotalTxCount : %d\n\n", block.TotalTxCount)
@@ -74,5 +81,5 @@ func ParseResultPrinter(block *Block) {
 		}
 		fmt.Printf("LockTime : %d\n", block.Transactions[i].LockTime)
 		fmt.Printf("------------------------------------------------\n")
-	}
+	}*/
 }

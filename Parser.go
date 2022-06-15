@@ -14,18 +14,6 @@ func ParseBlock(BlockData []byte) *Block {
 	return block
 }
 
-func VarintHandler(varint []byte) (uint64, uint8) {
-	switch {
-	case varint[0] == 253:
-		return uint64(binary.LittleEndian.Uint16(varint[1:3])), 3
-	case varint[0] == 254:
-		return uint64(binary.LittleEndian.Uint32(varint[1:5])), 5
-	case varint[0] == 255:
-		return binary.LittleEndian.Uint64(varint[1:9]), 9
-	default:
-		return uint64(varint[0]), 1
-	}
-}
 func PreambleParser(Data []byte) *Preamble {
 	preamble := &Preamble{}
 	preamble.MagicNumber = Data[0:4]
@@ -49,8 +37,14 @@ func TransactionsParser(Data []byte, numTx uint64) *[]Transaction {
 	var transactions []Transaction
 	Pos := 0
 	for i := 0; uint64(i) < numTx; i++ {
+
 		transaction := &Transaction{}
 		transaction.TxVersion = binary.LittleEndian.Uint32(Data[Pos : Pos+4])
+		if Data[Pos+4] == 0 {
+
+			transaction.IsSegwit = true
+			Pos += 2
+		}
 		transaction.TxInputCount, UsedBytes = VarintHandler(Data[Pos+4 : Pos+13])
 
 		Pos += 4 + int(UsedBytes)
@@ -78,9 +72,33 @@ func TransactionsParser(Data []byte, numTx uint64) *[]Transaction {
 			Pos = Pos + 8 + int(UsedBytes) + int(txOutput.ScriptLength)
 			transaction.TxOutputs = append(transaction.TxOutputs, *txOutput)
 		}
+		if transaction.IsSegwit {
+			for i := 0; i < int(transaction.TxInputCount); i++ {
+				numWitnesses, UsedBytes := VarintHandler(Data[Pos : Pos+9])
+				Pos += int(UsedBytes)
+				for i := 0; i < int(numWitnesses); i++ {
+					witnessSize, UsedBytes := VarintHandler(Data[Pos : Pos+9])
+					Pos += int(UsedBytes) + int(witnessSize)
+
+				}
+			}
+		}
 		transaction.LockTime = binary.LittleEndian.Uint32(Data[Pos : Pos+4])
 		transactions = append(transactions, *transaction)
 		Pos = Pos + 4
 	}
 	return &transactions
+}
+
+func VarintHandler(varint []byte) (uint64, uint8) {
+	switch {
+	case varint[0] == 253:
+		return uint64(binary.LittleEndian.Uint16(varint[1:3])), 3
+	case varint[0] == 254:
+		return uint64(binary.LittleEndian.Uint32(varint[1:5])), 5
+	case varint[0] == 255:
+		return binary.LittleEndian.Uint64(varint[1:9]), 9
+	default:
+		return uint64(varint[0]), 1
+	}
 }
